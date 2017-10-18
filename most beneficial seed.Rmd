@@ -12,18 +12,14 @@ knitr::opts_chunk$set(xecho = TRUE)
 
 ```{r, echo=FALSE}
 
-require(stats) # for lowess, rpois, rnorm
+#require(stats) # for lowess, rpois, rnorm
 
 ptm1 <- proc.time()
 
 
-# spin a fair roulette American, not european
-spin_roulette = function( pockets = c("00", 0:36)){ # <- this makes the numbers into characters, can't use numeric because of 00
- # if (is.na(pockets)){
-  #  return("Pockets not well defined")
-  #}
-  
-  n <- length(pockets)
+# spin a fair roulette from class
+spin_roulette = function( pockets = c("00", 0:36)){
+    n <- length(pockets)
   draw_pocket <- sample(n,1)
   spin <- pockets[draw_pocket]
   return(spin)
@@ -32,7 +28,7 @@ spin_roulette = function( pockets = c("00", 0:36)){ # <- this makes the numbers 
 
 
 
-starting_seed_number <- 1
+starting_seed_number <- 1 # tested with 73425, 176243, 983651, 1, 0, -1, -87325,     >> as.integer("STAT297") fails! <<
 runs <- 100 # how many iterations of the for loop
 
 # we store the result of each pass through here
@@ -59,8 +55,8 @@ time_to_loose  <- vector(mode = "integer", length = how_many_days)
         bets <- c("1", 2:36)
         player_wins <- 0
         player_money <- 100
-        bet_amount <- 1
-        walk_away <- 100000
+        bet_amount <- 10
+        walk_away <- 10^4
         house_wins <- 0
         number_of_games <- 10^2
         games_played <- 0
@@ -127,16 +123,17 @@ time_to_loose  <- vector(mode = "integer", length = how_many_days)
 
 #winnings
 #sum(winnings)
-win_percent <- sum(winnings)
+daily_winnings <- sum(winnings)
 
 up_or_down <-cumsum(winnings)
 up_or_down[which.min(up_or_down)]
 up_or_down[which.max(up_or_down)]
 
 
+# cat("after",how_many_days,"days in vegas playing",number_of_games,"games/day, we won",daily_winnings,"\n")
 
- # cat("after",how_many_days,"days in vegas playing",number_of_games,"games/day, we won",win_percent,"\n")
-
+vector_index <- y-starting_seed_number+1 # this is to change the start point to any number other than one
+#cat("seed(",y,")",daily_winnings,"  vector index =",vector_index,"\n")
 
 
 #winnings
@@ -144,12 +141,12 @@ up_or_down[which.max(up_or_down)]
 #time_to_loose
 
 #print("trip winnings")
-#plot(up_or_down)
+#barplot(up_or_down)
  #lines(lowess(up_or_down))
  
  #barplot(up_or_down)
  
-run_throughs[y] <-  win_percent 
+run_throughs[vector_index] <-  daily_winnings 
  
 }
 
@@ -157,14 +154,16 @@ max_seed <- which.max(run_throughs) + starting_seed_number - 1
 min_seed <- which.min(run_throughs) + starting_seed_number - 1
 
 
-print("run_throughs max and mins:")
+cat("max and min values between",starting_seed_number,"and",starting_seed_number+runs-1,":")
 cat("using seed(",max_seed,") gives us a maximum value of",run_throughs[which.max(run_throughs)])
 cat("using seed(",min_seed,") gives us a minimum value of",run_throughs[which.min(run_throughs)])
 
 
 barplot(run_throughs, col = rainbow(length(run_throughs)))
 
-barplot(run_throughs, col = cm.colors(length(run_throughs), alpha = 1))
+#barplot(run_throughs, col = cm.colors(length(run_throughs), alpha = 1))
+
+mean(run_throughs)
 
 
  proc.time() - ptm1
