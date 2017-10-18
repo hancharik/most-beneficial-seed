@@ -1,0 +1,173 @@
+---
+title: "most beneficial seed"
+author: "Mark Hancharik"
+date: "10/17/2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(xecho = TRUE)
+```
+
+
+```{r, echo=FALSE}
+
+require(stats) # for lowess, rpois, rnorm
+
+ptm1 <- proc.time()
+
+
+# spin a fair roulette American, not european
+spin_roulette = function( pockets = c("00", 0:36)){ # <- this makes the numbers into characters, can't use numeric because of 00
+ # if (is.na(pockets)){
+  #  return("Pockets not well defined")
+  #}
+  
+  n <- length(pockets)
+  draw_pocket <- sample(n,1)
+  spin <- pockets[draw_pocket]
+  return(spin)
+}
+
+
+
+
+starting_seed_number <- 1
+runs <- 100 # how many iterations of the for loop
+
+# we store the result of each pass through here
+run_throughs <- vector(mode = "integer", length = runs)
+
+
+# here is the main loop through
+for(y in starting_seed_number:((starting_seed_number + runs)-1)){
+
+set.seed(y)
+  
+  
+how_many_days <- 4
+winnings <- vector(mode = "integer", length = how_many_days)
+time_to_win  <- vector(mode = "integer", length = how_many_days)
+time_to_loose  <- vector(mode = "integer", length = how_many_days)
+
+
+
+          #############################v TOTAL TRIP LOOP v#############################
+
+        for(b in 1:how_many_days){
+        
+        bets <- c("1", 2:36)
+        player_wins <- 0
+        player_money <- 100
+        bet_amount <- 1
+        walk_away <- 100000
+        house_wins <- 0
+        number_of_games <- 10^2
+        games_played <- 0
+        games <- vector(mode = "integer", length = number_of_games)#matrix(NaN, (number_of_games+1)*2, 2, byrow=TRUE)
+        #colnames(games) <- c("game_number", "player_money")
+        #games[1] = 0
+        
+        
+          #############################v DAY LOOP v#############################
+                        
+                        for(i in 1:number_of_games){
+                          
+                         
+                          
+                                    if(player_money > 0 & player_money < walk_away){
+                                     games_played = games_played + 1  
+                                    bet <- "11" # bets[sample(length(bets),1)] 
+                                    spin_result <- spin_roulette()
+                                    
+                                      if(player_money-bet_amount<0){
+                                        bet_amount = player_money
+                                      }
+                                            if(bet == spin_result){
+                                              #cat("player wins! bet=",bet,", spin result =",spin_result,"\n")
+                                              player_wins = player_wins + 1
+                                              player_money = player_money + bet_amount*36
+                                              bet_amount = 1
+                                               #games[i+1] = player_money
+                                            }else{
+                                              # cat("house wins! bet=",bet,", spin result =",spin_result,"\n")
+                                              house_wins = house_wins + 1
+                                               player_money = player_money - bet_amount
+                                               bet_amount = 1#bet_amount + 1
+                                               # games[i+1] = player_money
+                                            }
+                                    
+                                    
+                                    }else{
+                                      #cat(games_played,player_money,"\n")
+                                    } # end if 
+                         games[i] = player_money
+                         if(player_money > 0){
+                           time_to_win[b] = games_played
+                         }else{
+                           time_to_loose[b] = games_played
+                         }
+                        
+                         #cat("i =",i,player_money,"\n")
+                         
+                        } # end i loop
+        
+        #############################^ MAIN LOOP ^#############################
+        
+        
+        
+        #tail(games)
+        #barplot(games)
+        winnings[b] = player_money - 100
+         
+        } # end b loop
+
+          #############################v TOTAL TRIP LOOP v#############################
+
+
+#winnings
+#sum(winnings)
+win_percent <- sum(winnings)
+
+up_or_down <-cumsum(winnings)
+up_or_down[which.min(up_or_down)]
+up_or_down[which.max(up_or_down)]
+
+
+
+ # cat("after",how_many_days,"days in vegas playing",number_of_games,"games/day, we won",win_percent,"\n")
+
+
+
+#winnings
+#time_to_win
+#time_to_loose
+
+#print("trip winnings")
+#plot(up_or_down)
+ #lines(lowess(up_or_down))
+ 
+ #barplot(up_or_down)
+ 
+run_throughs[y] <-  win_percent 
+ 
+}
+
+max_seed <- which.max(run_throughs) + starting_seed_number - 1
+min_seed <- which.min(run_throughs) + starting_seed_number - 1
+
+
+print("run_throughs max and mins:")
+cat("using seed(",max_seed,") gives us a maximum value of",run_throughs[which.max(run_throughs)])
+cat("using seed(",min_seed,") gives us a minimum value of",run_throughs[which.min(run_throughs)])
+
+
+barplot(run_throughs, col = rainbow(length(run_throughs)))
+
+barplot(run_throughs, col = cm.colors(length(run_throughs), alpha = 1))
+
+
+ proc.time() - ptm1
+
+```
+
