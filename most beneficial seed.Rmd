@@ -108,7 +108,7 @@ time_to_loose  <- vector(mode = "integer", length = how_many_days)
                          
                         } # end i loop
         
-        #############################^ MAIN LOOP ^#############################
+        #############################^ DAY LOOP ^#############################
         
         
         
